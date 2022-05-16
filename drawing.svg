@@ -1,0 +1,11 @@
+<svg width="1920" height="1080" version="1.1" viewBox="0 0 508 285.75" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs>
+<linearGradient id="linearGradient2550" x1="81.389" x2="451.21" y1="79.962" y2="258.45" gradientUnits="userSpaceOnUse">
+<stop style="stop-color:#ccc" offset="0"></stop>
+<stop style="stop-color:#ccc;stop-opacity:0" offset="1"></stop>
+ </linearGradient>
+</defs>
+<rect width="508" height="285.75" style="fill:url(#linearGradient2550);stroke-width:.98477"></rect>
+<text x="27.17724" y="60.145489" style="fill:#000000;font-family:sans-serif;font-size:52.159px;letter-spacing:0px;line-height:1.25;stroke-width:1.304;word-spacing:0px" xml:space="preserve"><tspan x="27.17724" y="60.145489" style="stroke-width:1.304">Welcome All!</tspan></text>
+<rect x="45.692" y="99.952" width="417.66" height="122.8" style="fill:#500;stroke-width:.965"></rect>
+</svg>
