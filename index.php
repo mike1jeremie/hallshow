@@ -53,15 +53,19 @@
          background-color: black;
          position: fixed;
          display: block;
-         width:100%;
-         height:100%;
+         width:100vw;
+         height:100vh;
          top: 0;
          left: 0;
          padding: 0;
          margin: 0;
          overflow: hidden;
       }
-
+      .thumb {
+         width: 100%;
+         height: 100%;
+         padding:5px;
+      }
       .thumb>svg,.thumb>img,.thumb>iframe{
          width: 100%;
          height: 100%;
@@ -103,7 +107,8 @@
 
    setInterval(function() {
       if (cur == 0) {
-         $("#frames").load("./frames.html", function() {
+         var d = new Date();
+         $("#frames").load("./frames.html?"+d.getTime(), function() {
             document.getElementById("frames").innerHTML = document.getElementById("frames").innerHTML.replaceAll('onclick="selectFrame(this.id)" class="frame"','');
             frames = [];
             for (i = 0; i < document.getElementById("frames").children.length; i++) {
