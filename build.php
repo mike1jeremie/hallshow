@@ -23,9 +23,9 @@
  * 
  */
 
-//ini_set('display_errors', 1);
-//ini_set('display_startup_errors', 1);
-//error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -36,7 +36,7 @@
    <meta name="generator" content="Geany 1.37.1" />
    <script src="jquery-3.6.0.min.js"></script>
    <style>
-      body *{
+      body * {
          font-family: Arial, Helvetica, sans-serif;
       }
 
@@ -159,7 +159,10 @@
          overflow-x: scroll;
       }
 
-      .thumb>svg {
+      .thumb>svg,
+      .thumb>iframe,
+      .thumb>img,
+      .thumb>video {
          width: 192px;
          height: 108px;
       }
@@ -171,6 +174,26 @@
       input[type=file] {
          width: 90px;
          color: transparent;
+      }
+
+      #wysiwyg {
+         margin-top: 5px;
+         background-color: #ffffff;
+         position: relative;
+         width: 100%;
+         padding-top: 56.25%;
+         /* 16:9 Aspect Ratio */
+         overflow: scroll;
+      }
+
+      #wysiwyg>div {
+         background-color: #ffffff;
+         position: absolute;
+         top: 0;
+         left: 0;
+         bottom: 0;
+         right: 0;
+         text-align: center;
       }
    </style>
 </head>
@@ -214,11 +237,16 @@
          &nbsp;&nbsp;&nbsp;
       </div>
 
-      <h4>Load SVG</h4>
-      <input id='selectedfile' type='text' name='selectedfile'>
+      <h4>Load Frame</h4>
+      <input id='selectedfile' type='text' name='selectedfile' hidden>
       <input id='inputfile' type='file' name='inputfile' onChange='showSelectedFile()'>
+
    </div>
-   <div onkeyup="conchg()" id="frcon" contentEditable></div>
+   <!-- <div onkeyup="conchg()" id="frcon" contentEditable></div> -->
+   <textarea onkeyup="conchg()" id="frcon" name="frcon" rows="4" cols="50"></textarea>
+   <div id="wysiwyg" hidden>
+      <div></div>
+   </div>
 
    <script>
       var sel = null;
@@ -250,7 +278,7 @@
 
             fcnt++;
             var fid = window.performance.now().toString().replace(".", "");
-            itm.innerHTML += "<div onclick='selectFrame(this.id)' class='frame' title='60|20' id='" + fid + "'><div id='thumb' class='thumb'>"+document.getElementById(sel).children[0].innerHTML+"</div></div>";
+            itm.innerHTML += "<div onclick='selectFrame(this.id)' class='frame' title='60|20' id='" + fid + "'><div id='thumb' class='thumb'>" + document.getElementById(sel).children[0].innerHTML + "</div></div><del></del>";
             selectFrame(fid);
          }
       }
@@ -259,7 +287,7 @@
          var itm = document.getElementById('frames')
          if (sel != null) {
             itm.removeChild(document.getElementById(sel));
-            document.getElementById("frcon").innerText = '';
+            document.getElementById("frcon").value = '';
             sel = null;
          }
       }
@@ -285,7 +313,8 @@
          }
          document.getElementById(id).classList.add("selfrm");
          var fdata = document.getElementById(id).title.split('|');
-         document.getElementById("frcon").innerText = document.getElementById(sel).firstChild.innerHTML;
+         document.getElementById("frcon").value = document.getElementById(sel).firstChild.innerHTML;
+         document.getElementById("wysiwyg").firstChild.innerHTML = document.getElementById(sel).children[0].innerHTML;
          document.getElementById("frdur").value = fdata[0];
          document.getElementById("fadur").value = fdata[1];
       }
@@ -294,25 +323,15 @@
          if (sel != null) {
             var fdatas = document.getElementById("frdur").value + "|" + document.getElementById("fadur").value;
             document.getElementById(sel).title = fdatas;
-            document.getElementById(sel).firstChild.innerHTML = document.getElementById("frcon").innerText;
-
+            //document.getElementById(sel).firstChild.innerHTML = document.getElementById("frcon").innerText;
+            document.getElementById(sel).children[0].innerHTML = document.getElementById("frcon").value;
+            console.log(document.getElementById("frcon").value);
+            console.log(document.getElementById(sel).firstChild.innerHTML);
          }
       }
 
       function save() {
-         /*
-         var data = [];
-         for (i = 0; i < document.getElementById("frames").children.length; i++) {
-            let frm = [];
-            frm.push(document.getElementById("frames").children[i].id);
-            frm.push(document.getElementById("frames").children[i].title);
-            frm.push(document.getElementById("frames").children[i].children[0].innerHTML);
-            data.push(frm.join('|'));
-         }
-         var jqxhr = $.post("proc.php", {
-            data: data.join('~')
-         });
-         */
+
          for (i = 0; i < document.getElementById("frames").children.length; i++) {
             document.getElementById("frames").children[i].classList.remove("selfrm");
          }
@@ -320,22 +339,56 @@
          var jqxhr = $.post("proc.php", {
             data: document.getElementById("frames").innerHTML
          });
-         console.log(jqxhr);
+         //console.log(jqxhr);
+
+
+      }
+
+      async function uploadFile() {
+         let formData = new FormData();
+         console.log(inputfile.files[0]);
+         formData.append("file", inputfile.files[0]);
+
+         let rep = await fetch('upload.php', {
+            method: "POST",
+            body: formData
+         });
+         let da = await rep.text();
+         console.log(da);
+         console.log('The file has been uploaded successfully.');
       }
 
       function showSelectedFile() {
-         selectedfile.value = document.getElementById("inputfile").value;
+         selectedfile.value = document.getElementById("inputfile").files[0].name;
       }
+
       document.getElementById('inputfile').addEventListener('change', function() {
          if (sel != null) {
+            console.log(document.getElementById("inputfile").files[0].name);
+            let fext = document.getElementById("inputfile").files[0].name.split('.')[1];
+            console.log(fext);
+            if (fext == 'svg') {
+               var fr = new FileReader();
+               fr.onload = function() {
+                  document.getElementById(sel).firstChild.innerHTML = fr.result;
+               }
+               fr.readAsText(this.files[0]);
+            } else {
+               uploadFile();
 
-            var fr = new FileReader();
-            fr.onload = function() {
-               document.getElementById(sel).firstChild.innerHTML = fr.result;
-               document.getElementById("frcon").innerText = document.getElementById(sel).firstChild.innerHTML;
-
+               if (fext == 'mp4') {
+                  document.getElementById(sel).firstChild.innerHTML = `
+<video id="swtclogo" width="400" autoplay="" muted="">
+  <source src="uploads/` + encodeURIComponent(document.getElementById("inputfile").files[0].name) + `" type="video/mp4">
+  Your browser does not support HTML video.
+</video>
+`;
+               } else if (fext == 'png' || fext == 'jpg' || fext == 'PNG' || fext == 'JPG') {
+                  document.getElementById(sel).firstChild.innerHTML = `<img src="uploads/` + encodeURIComponent(document.getElementById("inputfile").files[0].name) + `">`;
+               }
             }
-            fr.readAsText(this.files[0]);
+            document.getElementById("frcon").value = document.getElementById(sel).firstChild.innerHTML;
+            conchg();
          }
       })
    </script>

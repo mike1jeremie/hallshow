@@ -43,7 +43,7 @@
       }
 
       #show {
-         display:block;
+         display: block;
          position: relative;
          width: 100%;
          height: 100%;
@@ -53,20 +53,25 @@
          background-color: black;
          position: fixed;
          display: block;
-         width:100vw;
-         height:100vh;
+         width: 100vw;
+         height: 100vh;
          top: 0;
          left: 0;
          padding: 0;
          margin: 0;
          overflow: hidden;
       }
+
       .thumb {
          width: 100%;
          height: 100%;
-         padding:5px;
+         padding: 5px;
       }
-      .thumb>svg,.thumb>img,.thumb>iframe{
+
+      .thumb>svg,
+      .thumb>img,
+      .thumb>iframe,
+      .thumb>video {
          width: 100%;
          height: 100%;
       }
@@ -91,6 +96,7 @@
    var cnt = 0;
    var frames = [];
    var cur = 0;
+   var doc = null;
 
    function moveChildTo(child, direction) {
 
@@ -108,8 +114,27 @@
    setInterval(function() {
       if (cur == 0) {
          var d = new Date();
-         $("#frames").load("./frames.html?"+d.getTime(), function() {
-            document.getElementById("frames").innerHTML = document.getElementById("frames").innerHTML.replaceAll('onclick="selectFrame(this.id)" class="frame"','');
+
+         $.get("./frames.html?" + d.getTime(), function(response) {
+            var data = response;
+            //console.log(data);
+
+            var parser = new DOMParser();
+            doc = parser.parseFromString(data, 'text/html');
+            frames = [];
+            for (i = 0; i < doc.body.children.length; i++) {
+               let frame = [];
+               frame.push(doc.body.children[i].id);
+               frame.push(parseInt(doc.body.children[i].title.split('|')[0]));
+               frame.push(parseInt(doc.body.children[i].title.split('|')[1]));
+               frames.push(frame);
+            }
+
+            //console.log(doc);
+         });
+/*
+         $("#frames").load("./frames.html?" + d.getTime(), function() {
+            document.getElementById("frames").innerHTML = document.getElementById("frames").innerHTML.replaceAll('onclick="selectFrame(this.id)" class="frame"', '');
             frames = [];
             for (i = 0; i < document.getElementById("frames").children.length; i++) {
                let frame = [];
@@ -119,18 +144,20 @@
                frames.push(frame);
             }
          });
-      } 
+*/
+      }
+
       if (frames.length > 0) {
          if (dts > (dtd + (frames[cur][1] * 100))) {
-            if(dtd != 0) cur = ((cur+1) % frames.length);
+            if (dtd != 0) cur = ((cur + 1) % frames.length);
             document.getElementById('show').children[0].style.opacity = 0;
-            document.getElementById('show').children[0].innerHTML = document.getElementById(frames[cur][0]).innerHTML;
+            document.getElementById('show').children[0].innerHTML = doc.getElementById(frames[cur][0]).innerHTML;//document.getElementById(frames[cur][0]).innerHTML;
             document.getElementById('show').insertBefore(document.getElementById('show').children[1], document.getElementById('show').children[0]);
             dtd = dts;
             cnt = 0;
          }
 
-         document.getElementById('show').children[1].style.opacity = Math.min(cnt, frames[cur][2]) / frames[cur][2];
+         document.getElementById('show').children[1].style.opacity = Math.min(Math.max(cnt-20,0), frames[cur][2]) / frames[cur][2];
          //console.log(cur +"    "+frames[cur][2]);
 
          dt = new Date();

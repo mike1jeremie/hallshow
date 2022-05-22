@@ -23,13 +23,14 @@
  * 
  */
 
-//ini_set('display_errors', 1);
-//ini_set('display_startup_errors', 1);
-//error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-   //extract($_GET);
-   //extract($_POST);
-
+//extract($_GET);
+//extract($_POST);
+if (array_key_exists('data', $_POST)) {
    $myfile = fopen("frames.html", "w") or die("Unable to open file!");
    fwrite($myfile, trim($_POST["data"]));
    fclose($myfile);
+}
