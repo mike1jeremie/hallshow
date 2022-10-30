@@ -35,6 +35,9 @@
    <title>HallShow</title>
    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
    <meta name="generator" content="Geany 1.37.1" />
+   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+   <meta http-equiv="Pragma" content="no-cache" />
+   <meta http-equiv="Expires" content="0" />
    <script src="jquery-3.6.0.min.js"></script>
    <style>
       h1 {
@@ -49,7 +52,8 @@
          height: 100%;
       }
 
-      .fb {
+      .fb,
+      .framecont {
          background-color: black;
          position: fixed;
          display: block;
@@ -61,20 +65,6 @@
          margin: 0;
          overflow: hidden;
       }
-
-      .thumb {
-         width: 100%;
-         height: 100%;
-         padding: 5px;
-      }
-
-      .thumb>svg,
-      .thumb>img,
-      .thumb>iframe,
-      .thumb>video {
-         width: 100%;
-         height: 100%;
-      }
    </style>
 </head>
 
@@ -85,7 +75,6 @@
       <div class='fb' id='b'></div>
    </div>
    <div class='frames' id='frames' hidden></div>
-
 </body>
 <script>
    var cur = 0;
@@ -94,75 +83,51 @@
    var dtd = 0;
    var dur = 0;
    var cnt = 0;
-   var frames = [];
+   var frames = []; //frame time, fade time, pre roll, type, url
    var cur = 0;
-   var doc = null;
-
-   function moveChildTo(child, direction) {
-
-      var span = child.parentNode,
-         td = span.parentNode;
-
-      if (direction === -1 && span.previousElementSibling) {
-         td.insertBefore(span, span.previousElementSibling);
-      } else if (direction === 1 && span.nextElementSibling) {
-         td.insertBefore(span, span.nextElementSibling.nextElementSibling)
-      }
-   }
-
+   var l = 1;
+   var ln = ['#a','#b'];
+   const tags = ['img', 'vid', 'ifr'];
+   const struct = ['<img class="framecont"  src="|name|?|D|">', '<video class="framecont" autoplay muted>  <source src="|name|?|D|" type="video/mp4">', '<iframe class="framecont" src="|name|&|D|"></iframe>'];
 
    setInterval(function() {
       if (cur == 0) {
          var d = new Date();
-
-         $.get("./frames.html?" + d.getTime(), function(response) {
-            var data = response;
-            //console.log(data);
-
-            var parser = new DOMParser();
-            doc = parser.parseFromString(data, 'text/html');
+         $("#frames").load("./list.txt?" + d.getTime(), function() {
             frames = [];
-            for (i = 0; i < doc.body.children.length; i++) {
-               let frame = [];
-               frame.push(doc.body.children[i].id);
-               frame.push(parseInt(doc.body.children[i].title.split('|')[0]));
-               frame.push(parseInt(doc.body.children[i].title.split('|')[1]));
-               frames.push(frame);
-            }
-
-            //console.log(doc);
-         });
-/*
-         $("#frames").load("./frames.html?" + d.getTime(), function() {
-            document.getElementById("frames").innerHTML = document.getElementById("frames").innerHTML.replaceAll('onclick="selectFrame(this.id)" class="frame"', '');
-            frames = [];
-            for (i = 0; i < document.getElementById("frames").children.length; i++) {
-               let frame = [];
-               frame.push(document.getElementById("frames").children[i].id);
-               frame.push(parseInt(document.getElementById("frames").children[i].title.split('|')[0]));
-               frame.push(parseInt(document.getElementById("frames").children[i].title.split('|')[1]));
-               frames.push(frame);
+            let list = document.getElementById("frames").innerHTML.split('\n');
+            for (i = 0; i < list.length; i++) {
+               let frame = list[i].split('|');
+               if (frame.length == 5) {
+                  frame[0] = parseInt(frame[0]);
+                  frame[1] = parseInt(frame[1]);
+                  frame[2] = parseInt(frame[2]);
+                  frames.push(frame);
+               }
             }
          });
-*/
       }
-
       if (frames.length > 0) {
-         if (dts > (dtd + (frames[cur][1] * 100))) {
+         if (dts > (dtd + ((frames[cur][0]) * 100))) {
             if (dtd != 0) cur = ((cur + 1) % frames.length);
-            document.getElementById('show').children[0].style.opacity = 0;
-            document.getElementById('show').children[0].innerHTML = doc.getElementById(frames[cur][0]).innerHTML;//document.getElementById(frames[cur][0]).innerHTML;
-            document.getElementById('show').insertBefore(document.getElementById('show').children[1], document.getElementById('show').children[0]);
+            document.getElementById('show').children[l].style.zIndex = "-1";
+            l++;
+            l = l%2;
+            document.getElementById('show').children[l].style.zIndex = "99";
+            document.getElementById('show').children[l].style.opacity = 0;
+
+            var d = new Date();
+            document.getElementById('show').children[l].innerHTML = struct[tags.indexOf(frames[cur][3])].replace('|name|', frames[cur][4]).replace('|D|',d.getTime());
+
             dtd = dts;
-            cnt = 0;
+            cnt = -Math.round(frames[cur][2]);
          }
 
-         document.getElementById('show').children[1].style.opacity = Math.min(Math.max(cnt-20,0), frames[cur][2]) / frames[cur][2];
+         document.getElementById('show').children[l].style.opacity = Math.max(0, Math.min(cnt, frames[cur][1])) / frames[cur][1];
          //console.log(cur +"    "+frames[cur][2]);
 
          dt = new Date();
          dts = dt.getTime();
-
          cnt++;
       }
    }, (1 / 30 * 1000));

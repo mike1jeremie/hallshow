@@ -1,0 +1,4 @@
+60|20|0|img|drawing3.svg
+80|20|0|vid|mov_bbb.mp4
+110|20|50|ifr|https://docs.google.com/presentation/d/e/2PACX-1vRPjWYPTgjkBJB1_0ob7sQ3unP_DpauACmvVPxv5GRej8V3eWvNpjOFl7dkUgLRI2OL0M5M7sZl0i_s/embed?start=false&amp;loop=false&amp;delayms=3000&amp;rm=minimal
+110|20|0|vid|anim2logo20001-0240.mp4
